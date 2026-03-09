@@ -1,7 +1,7 @@
 {
-  "name": "@opencode-config-validator/plugin",
+  "name": "opencode-config-plugin",
   "version": "1.0.0",
-  "description": "OpenCode plugin for safe config updates with JSON Schema validation",
+  "description": "OpenCode tool to safely update configuration with JSON schema validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
