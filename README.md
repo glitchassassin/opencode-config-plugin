@@ -1,11 +1,11 @@
-# OpenCode Config Validator Plugin
+# OpenCode Config Plugin
 
 A plugin that provides a safe, deterministic way to update OpenCode configuration files with JSON Schema validation.
 
 ## Installation
 
 ```bash
-npm install @opencode-config-validator/plugin
+npm install opencode-config-plugin
 ```
 
 ## Usage
@@ -14,7 +14,7 @@ Add to your `opencode.json`:
 
 ```json
 {
-  "plugin": ["@opencode-config-validator/plugin"]
+  "plugin": ["opencode-config-plugin"]
 }
 ```
 
