@@ -1,3 +1,4 @@
+import { tool, type ToolDefinition } from '@opencode-ai/plugin';
 import type { ConfigUpdaterParams, ConfigUpdaterResult, ConfigUpdate } from '../types.js';
 import { createConfigOperations } from '../lib/config.js';
 import { createSchemaOperations } from '../lib/schema.js';
@@ -76,39 +77,19 @@ export async function configUpdater(params: ConfigUpdaterParams): Promise<Config
   }
 }
 
-export const configUpdaterTool = {
-  name: 'config_updater',
+export const configUpdaterTool: ToolDefinition = tool({
   description: 'Safely update OpenCode configuration with JSON Schema validation',
-  params: {
-    type: 'object',
-    properties: {
-      updates: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            path: { type: 'string' },
-            value: {}
-          },
-          required: ['path', 'value']
-        },
-        description: 'Array of JSON path/value updates to apply'
-      },
-      configType: {
-        type: 'string',
-        enum: ['global', 'project'],
-        description: 'Which config to update (default: "project")'
-      },
-      configPath: {
-        type: 'string',
-        description: 'Explicit path to config file (overrides configType)'
-      },
-      dryRun: {
-        type: 'boolean',
-        description: 'Validate without writing (default: false)'
-      }
-    },
-    required: ['updates']
+  args: {
+    updates: tool.schema.array(tool.schema.object({
+      path: tool.schema.string(),
+      value: tool.schema.any()
+    })),
+    configType: tool.schema.enum(['global', 'project']).optional(),
+    configPath: tool.schema.string().optional(),
+    dryRun: tool.schema.boolean().optional()
   },
-  handler: configUpdater
-};
+  execute: async (args, context) => {
+    const result = await configUpdater(args);
+    return JSON.stringify(result);
+  }
+});

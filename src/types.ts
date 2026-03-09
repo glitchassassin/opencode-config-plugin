@@ -1,3 +1,7 @@
+import type { Plugin } from '@opencode-ai/plugin';
+
+export { Plugin };
+
 export interface ConfigUpdate {
   path: string;
   value: unknown;
@@ -22,9 +26,4 @@ export interface ConfigUpdaterResult {
   appliedUpdates?: ConfigUpdate[];
   validationErrors?: ValidationError[];
   diff?: string;
-}
-
-export interface OpenCodePlugin {
-  name: string;
-  tools: Record<string, unknown>;
 }
