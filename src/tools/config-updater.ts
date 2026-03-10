@@ -78,7 +78,7 @@ export async function configUpdater(params: ConfigUpdaterParams): Promise<Config
 }
 
 export const configUpdaterTool: ToolDefinition = tool({
-  description: 'Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/docs/config/ for config options.',
+  description: 'Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/config.json for supported config fields.',
   args: {
     updates: tool.schema.array(tool.schema.object({
       path: tool.schema.string(),

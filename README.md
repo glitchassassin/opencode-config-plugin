@@ -20,7 +20,7 @@ Add to your `opencode.json`:
 
 ## Tool: config_updater
 
-The plugin exposes a single tool for updating OpenCode configuration with validation based on https://opencode.ai/docs/config/.
+The plugin exposes a single tool for updating OpenCode configuration with validation based on `https://opencode.ai/config.json`.
 
 ### Parameters
 
