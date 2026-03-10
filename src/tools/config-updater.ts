@@ -189,13 +189,11 @@ export async function configUpdater(
 
 export const configUpdaterTool: ToolDefinition = tool({
   description:
-    "Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/config.json for supported config fields.",
+    "Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/config.json for supported config fields. Update paths accept either dotted paths like mode.build.model or JSON Pointer paths like /mode/build/model; use JSON Pointer escaping (~1 for /, ~0 for ~) for special characters in keys.",
   args: {
     updates: tool.schema.array(
       tool.schema.object({
-        path: tool.schema
-          .string()
-          .describe("Accepts dotted paths or JSON pointer paths"),
+        path: tool.schema.string(),
         value: tool.schema.any(),
       }),
     ),
