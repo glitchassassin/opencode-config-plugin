@@ -11,6 +11,8 @@ export const createPlugin: Plugin = async () => {
   };
 };
 
+export default createPlugin;
+
 export { configReader } from './tools/config-reader.js';
 export { configUpdater } from './tools/config-updater.js';
 export type {
