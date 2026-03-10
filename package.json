@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "repository": {
+    "url": "https://github.com/glitchassassin/opencode-config-plugin"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
