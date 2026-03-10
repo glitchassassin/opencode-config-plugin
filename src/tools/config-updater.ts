@@ -31,7 +31,7 @@ export async function configUpdater(params: ConfigUpdaterParams): Promise<Config
   const schemaOps = createSchemaOperations();
   const validator = createValidator();
 
-  const configPath = params.configPath || configOps.getDefaultConfigPath(params.configType || 'project');
+  const configPath = configOps.getDefaultConfigPath(params.configType);
   const currentConfig = configOps.readConfig(configPath);
 
   try {
@@ -84,8 +84,7 @@ export const configUpdaterTool: ToolDefinition = tool({
       path: tool.schema.string(),
       value: tool.schema.any()
     })),
-    configType: tool.schema.enum(['global', 'project']).optional(),
-    configPath: tool.schema.string().optional(),
+    configType: tool.schema.enum(['global', 'project']),
     dryRun: tool.schema.boolean().optional()
   },
   execute: async (args, context) => {

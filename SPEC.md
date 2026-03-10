@@ -49,8 +49,7 @@ The plugin exposes a single tool that handles all config modifications for both 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `updates` | `Array<{path: string, value: unknown}>` | Yes | Array of JSON path/value updates to apply |
-| `configType` | `"global" \| "project"` | No | Which config to update (default: `"project"`) |
-| `configPath` | `string` | No | Explicit path to config file (overrides `configType`) |
+| `configType` | `"global" \| "project"` | Yes | Which config to update |
 | `dryRun` | `boolean` | No | Validate without writing (default: `false`) |
 
 **Config Resolution:**
@@ -78,7 +77,7 @@ The plugin exposes a single tool that handles all config modifications for both 
 
 **Behavior:**
 
-1. **Resolve config path** — Based on `configType` or explicit `configPath`
+1. **Resolve config path** — Based on `configType`
 2. **Read current config** — Loads existing config file (or creates empty object if none)
 3. **Fetch schema** — Retrieves `https://opencode.ai/config.json` at runtime (cached with ETag)
 4. **Apply updates** — Merges updates into a copy of the current config
@@ -191,6 +190,7 @@ The plugin does not automatically register the agent. Users must add the agent c
 
 ```json
 {
+  "configType": "project",
   "updates": [
     {"path": "model", "value": "anthropic/claude-sonnet-4-20250514"}
   ]
@@ -265,6 +265,7 @@ The plugin does not automatically register the agent. Users must add the agent c
 
 ```json
 {
+  "configType": "project",
   "updates": [
     {"path": "model", "value": 12345}
   ]

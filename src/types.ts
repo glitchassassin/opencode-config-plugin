@@ -9,8 +9,7 @@ export interface ConfigUpdate {
 
 export interface ConfigUpdaterParams {
   updates: ConfigUpdate[];
-  configType?: 'global' | 'project';
-  configPath?: string;
+  configType: 'global' | 'project';
   dryRun?: boolean;
 }
 

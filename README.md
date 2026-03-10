@@ -27,14 +27,14 @@ The plugin exposes a single tool for updating OpenCode configuration with valida
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `updates` | `Array<{path: string, value: unknown}>` | Yes | Array of JSON path/value updates |
-| `configType` | `"global" \| "project"` | No | Which config to update (default: `"project"`) |
-| `configPath` | `string` | No | Explicit path to config file |
+| `configType` | `"global" \| "project"` | Yes | Which config to update |
 | `dryRun` | `boolean` | No | Validate without writing |
 
 ### Example
 
 ```json
 {
+  "configType": "project",
   "updates": [
     {"path": "model", "value": "anthropic/claude-sonnet-4-20250514"}
   ]
