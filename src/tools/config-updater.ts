@@ -1,32 +1,142 @@
-import { tool, type ToolDefinition } from '@opencode-ai/plugin';
-import type { ConfigUpdaterParams, ConfigUpdaterResult, ConfigUpdate } from '../types.js';
-import { createConfigOperations } from '../lib/config.js';
-import { createSchemaOperations } from '../lib/schema.js';
-import { createValidator } from '../lib/validator.js';
+import { tool, type ToolDefinition } from "@opencode-ai/plugin";
+import type {
+  ConfigUpdaterParams,
+  ConfigUpdaterResult,
+  ConfigUpdate,
+} from "../types.js";
+import { createConfigOperations } from "../lib/config.js";
+import { createSchemaOperations } from "../lib/schema.js";
+import { createValidator } from "../lib/validator.js";
 
-function applyUpdates(config: Record<string, unknown>, updates: ConfigUpdate[]): Record<string, unknown> {
+function parseDottedPath(path: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  let escaped = false;
+
+  for (const char of path) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === ".") {
+      if (!current) {
+        throw new Error(`Invalid dotted path: ${path}`);
+      }
+
+      parts.push(current);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  if (escaped || !current) {
+    throw new Error(`Invalid dotted path: ${path}`);
+  }
+
+  parts.push(current);
+  return parts;
+}
+
+function parsePath(path: string): string[] {
+  if (!path) {
+    throw new Error("Update path cannot be empty");
+  }
+
+  if (path.startsWith("/")) {
+    return path
+      .slice(1)
+      .split("/")
+      .map((part) => part.replace(/~1/g, "/").replace(/~0/g, "~"));
+  }
+
+  return parseDottedPath(path);
+}
+
+function isArrayIndex(segment: string): boolean {
+  return /^(0|[1-9]\d*)$/.test(segment);
+}
+
+function createContainer(
+  nextSegment: string,
+): Record<string, unknown> | unknown[] {
+  return isArrayIndex(nextSegment) ? [] : {};
+}
+
+function setAtPath(
+  target: Record<string, unknown>,
+  path: string,
+  value: unknown,
+): void {
+  const parts = parsePath(path);
+
+  if (parts.length === 0) {
+    throw new Error("Update path must target a config property");
+  }
+
+  let current: Record<string, unknown> | unknown[] = target;
+
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = parts[i];
+    const nextKey = parts[i + 1];
+
+    if (Array.isArray(current)) {
+      if (!isArrayIndex(key)) {
+        throw new Error(`Path segment "${key}" must be an array index`);
+      }
+
+      const index = Number(key);
+      if (typeof current[index] !== "object" || current[index] === null) {
+        current[index] = createContainer(nextKey);
+      }
+      current = current[index] as Record<string, unknown> | unknown[];
+      continue;
+    }
+
+    if (typeof current[key] !== "object" || current[key] === null) {
+      current[key] = createContainer(nextKey);
+    }
+
+    current = current[key] as Record<string, unknown> | unknown[];
+  }
+
+  const lastKey = parts[parts.length - 1];
+  if (Array.isArray(current)) {
+    if (!isArrayIndex(lastKey)) {
+      throw new Error(`Path segment "${lastKey}" must be an array index`);
+    }
+
+    current[Number(lastKey)] = value;
+    return;
+  }
+
+  current[lastKey] = value;
+}
+
+function applyUpdates(
+  config: Record<string, unknown>,
+  updates: ConfigUpdate[],
+): Record<string, unknown> {
   const result = JSON.parse(JSON.stringify(config));
 
   for (const update of updates) {
-    const parts = update.path.split('/').filter(Boolean);
-    let current: Record<string, unknown> = result;
-
-    for (let i = 0; i < parts.length - 1; i++) {
-      const key = parts[i];
-      if (!(key in current) || typeof current[key] !== 'object') {
-        current[key] = {};
-      }
-      current = current[key] as Record<string, unknown>;
-    }
-
-    const lastKey = parts[parts.length - 1];
-    current[lastKey] = update.value;
+    setAtPath(result, update.path, update.value);
   }
 
   return result;
 }
 
-export async function configUpdater(params: ConfigUpdaterParams): Promise<ConfigUpdaterResult> {
+export async function configUpdater(
+  params: ConfigUpdaterParams,
+): Promise<ConfigUpdaterResult> {
   const configOps = createConfigOperations();
   const schemaOps = createSchemaOperations();
   const validator = createValidator();
@@ -38,24 +148,24 @@ export async function configUpdater(params: ConfigUpdaterParams): Promise<Config
     const schema = await schemaOps.fetchSchema();
     const updatedConfig = applyUpdates(currentConfig, params.updates);
 
-    const validationErrors = validator.validate(updatedConfig, schema);
+    const validationErrors = await validator.validate(updatedConfig, schema);
 
     if (validationErrors.length > 0) {
       return {
         success: false,
-        message: 'Validation failed',
+        message: "Validation failed",
         configFile: configPath,
-        validationErrors
+        validationErrors,
       };
     }
 
     if (params.dryRun) {
       return {
         success: true,
-        message: 'Dry run - validation passed',
+        message: "Dry run - validation passed",
         configFile: configPath,
         appliedUpdates: params.updates,
-        diff: configOps.generateDiff(currentConfig, updatedConfig)
+        diff: configOps.generateDiff(currentConfig, updatedConfig),
       };
     }
 
@@ -63,32 +173,37 @@ export async function configUpdater(params: ConfigUpdaterParams): Promise<Config
 
     return {
       success: true,
-      message: `Updated ${params.configType === 'global' ? 'global' : 'project'} config with validated changes`,
+      message: `Updated ${params.configType === "global" ? "global" : "project"} config with validated changes`,
       configFile: configPath,
       appliedUpdates: params.updates,
-      diff: configOps.generateDiff(currentConfig, updatedConfig)
+      diff: configOps.generateDiff(currentConfig, updatedConfig),
     };
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      configFile: configPath
+      message: error instanceof Error ? error.message : "Unknown error",
+      configFile: configPath,
     };
   }
 }
 
 export const configUpdaterTool: ToolDefinition = tool({
-  description: 'Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/config.json for supported config fields.',
+  description:
+    "Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/config.json for supported config fields.",
   args: {
-    updates: tool.schema.array(tool.schema.object({
-      path: tool.schema.string(),
-      value: tool.schema.any()
-    })),
-    configType: tool.schema.enum(['global', 'project']),
-    dryRun: tool.schema.boolean().optional()
+    updates: tool.schema.array(
+      tool.schema.object({
+        path: tool.schema
+          .string()
+          .describe("Accepts dotted paths or JSON pointer paths"),
+        value: tool.schema.any(),
+      }),
+    ),
+    configType: tool.schema.enum(["global", "project"]),
+    dryRun: tool.schema.boolean().optional(),
   },
   execute: async (args, context) => {
     const result = await configUpdater(args);
     return JSON.stringify(result);
-  }
+  },
 });
