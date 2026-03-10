@@ -1,9 +1,15 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { resolve } from 'path';
 
+export interface ReadConfigResult {
+  exists: boolean;
+  config: Record<string, unknown>;
+}
+
 export interface ConfigFileOperations {
   readConfig(configPath: string): Record<string, unknown>;
+  readConfigWithMetadata(configPath: string): ReadConfigResult;
   writeConfig(configPath: string, config: Record<string, unknown>): void;
   getDefaultConfigPath(configType: 'global' | 'project'): string;
   generateDiff(original: Record<string, unknown>, updated: Record<string, unknown>): string;
@@ -23,11 +29,26 @@ export function createConfigOperations(): ConfigFileOperations {
       }
     },
 
+    readConfigWithMetadata(configPath: string): ReadConfigResult {
+      if (!existsSync(configPath)) {
+        return {
+          exists: false,
+          config: {}
+        };
+      }
+
+      const content = readFileSync(configPath, 'utf-8');
+
+      return {
+        exists: true,
+        config: JSON.parse(content) as Record<string, unknown>
+      };
+    },
+
     writeConfig(configPath: string, config: Record<string, unknown>): void {
       const dir = configPath.substring(0, configPath.lastIndexOf('/'));
-      const fs = require('fs');
       if (!existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+        mkdirSync(dir, { recursive: true });
       }
       writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
     },

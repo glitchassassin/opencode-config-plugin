@@ -18,11 +18,33 @@ Add to your `opencode.json`:
 }
 ```
 
-## Tool: config_updater
+## Tools
 
-The plugin exposes a single tool for updating OpenCode configuration with validation based on `https://opencode.ai/config.json`.
+The plugin exposes two tools for working with OpenCode configuration files.
 
-### Parameters
+### `config_reader`
+
+Reads the current global or project config without modifying it.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `configType` | `"global" \| "project"` | Yes | Which config to read |
+
+#### Example
+
+```json
+{
+  "configType": "project"
+}
+```
+
+### `config_updater`
+
+Safely updates OpenCode configuration with validation based on `https://opencode.ai/config.json`.
+
+#### Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
@@ -30,7 +52,7 @@ The plugin exposes a single tool for updating OpenCode configuration with valida
 | `configType` | `"global" \| "project"` | Yes | Which config to update |
 | `dryRun` | `boolean` | No | Validate without writing |
 
-### Example
+#### Example
 
 ```json
 {

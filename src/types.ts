@@ -13,6 +13,10 @@ export interface ConfigUpdaterParams {
   dryRun?: boolean;
 }
 
+export interface ConfigReaderParams {
+  configType: 'global' | 'project';
+}
+
 export interface ValidationError {
   path: string;
   message: string;
@@ -25,4 +29,12 @@ export interface ConfigUpdaterResult {
   appliedUpdates?: ConfigUpdate[];
   validationErrors?: ValidationError[];
   diff?: string;
+}
+
+export interface ConfigReaderResult {
+  success: boolean;
+  message: string;
+  configFile: string;
+  exists?: boolean;
+  config?: Record<string, unknown>;
 }
