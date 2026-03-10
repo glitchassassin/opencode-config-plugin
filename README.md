@@ -42,13 +42,13 @@ Reads the current global or project config without modifying it.
 
 ### `config_updater`
 
-Safely updates OpenCode configuration with validation based on `https://opencode.ai/config.json`.
+Safely updates OpenCode configuration with validation based on `https://opencode.ai/config.json`. Set an update `value` to `undefined` to remove that key from the config.
 
 #### Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `updates` | `Array<{path: string, value: unknown}>` | Yes | Array of JSON path/value updates |
+| `updates` | `Array<{path: string, value: unknown}>` | Yes | Array of JSON path/value updates; set `value` to `undefined` to remove a key |
 | `configType` | `"global" \| "project"` | Yes | Which config to update |
 | `dryRun` | `boolean` | No | Validate without writing |
 

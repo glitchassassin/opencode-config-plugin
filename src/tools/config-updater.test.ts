@@ -94,6 +94,24 @@ describe('configUpdater', () => {
     });
   });
 
+  it('removes a key when the update value is undefined', async () => {
+    writeFileSync(
+      join(tempDir, 'opencode.json'),
+      JSON.stringify({ share: 'manual', autoupdate: true }, null, 2)
+    );
+
+    const result = await configUpdater({
+      configType: 'project',
+      updates: [{ path: '/share', value: undefined }]
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('Updated project config');
+    expect(result.appliedUpdates).toEqual([{ path: '/share', value: undefined }]);
+    expect(JSON.parse(readFileSync(join(tempDir, 'opencode.json'), 'utf-8'))).toEqual({ autoupdate: true });
+    expect(result.diff).toContain('-   "share": "manual",');
+  });
+
   it('returns validation errors for invalid config values from the canonical schema', async () => {
     const result = await configUpdater({
       configType: 'project',

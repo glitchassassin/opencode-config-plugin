@@ -121,6 +121,54 @@ function setAtPath(
   current[lastKey] = value;
 }
 
+function deleteAtPath(target: Record<string, unknown>, path: string): void {
+  const parts = parsePath(path);
+
+  if (parts.length === 0) {
+    throw new Error("Update path must target a config property");
+  }
+
+  let current: Record<string, unknown> | unknown[] = target;
+
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = parts[i];
+
+    if (Array.isArray(current)) {
+      if (!isArrayIndex(key)) {
+        throw new Error(`Path segment "${key}" must be an array index`);
+      }
+
+      const next = current[Number(key)];
+      if (typeof next !== "object" || next === null) {
+        return;
+      }
+
+      current = next as Record<string, unknown> | unknown[];
+      continue;
+    }
+
+    const next = current[key];
+    if (typeof next !== "object" || next === null) {
+      return;
+    }
+
+    current = next as Record<string, unknown> | unknown[];
+  }
+
+  const lastKey = parts[parts.length - 1];
+
+  if (Array.isArray(current)) {
+    if (!isArrayIndex(lastKey)) {
+      throw new Error(`Path segment "${lastKey}" must be an array index`);
+    }
+
+    current.splice(Number(lastKey), 1);
+    return;
+  }
+
+  delete current[lastKey];
+}
+
 function applyUpdates(
   config: Record<string, unknown>,
   updates: ConfigUpdate[],
@@ -128,6 +176,11 @@ function applyUpdates(
   const result = JSON.parse(JSON.stringify(config));
 
   for (const update of updates) {
+    if (update.value === undefined) {
+      deleteAtPath(result, update.path);
+      continue;
+    }
+
     setAtPath(result, update.path, update.value);
   }
 
@@ -189,7 +242,7 @@ export async function configUpdater(
 
 export const configUpdaterTool: ToolDefinition = tool({
   description:
-    "Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/config.json for supported config fields. Update paths accept either dotted paths like mode.build.model or JSON Pointer paths like /mode/build/model; use JSON Pointer escaping (~1 for /, ~0 for ~) for special characters in keys.",
+    "Safely update OpenCode configuration with JSON Schema validation. See https://opencode.ai/config.json for supported config fields. Update paths accept either dotted paths like mode.build.model or JSON Pointer paths like /mode/build/model; use JSON Pointer escaping (~1 for /, ~0 for ~) for special characters in keys. Set a value to undefined to remove that key from the config.",
   args: {
     updates: tool.schema.array(
       tool.schema.object({

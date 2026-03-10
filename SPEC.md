@@ -42,13 +42,13 @@ opencode-config-validator/
 
 ### Tool: `config_updater`
 
-The plugin exposes a single tool that handles all config modifications for both global and project-specific configs.
+The plugin exposes a single tool that handles all config modifications for both global and project-specific configs. Set an update `value` to `undefined` to remove that key from the config.
 
 **Arguments:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `updates` | `Array<{path: string, value: unknown}>` | Yes | Array of JSON path/value updates to apply |
+| `updates` | `Array<{path: string, value: unknown}>` | Yes | Array of JSON path/value updates to apply; set `value` to `undefined` to remove a key |
 | `configType` | `"global" \| "project"` | Yes | Which config to update |
 | `dryRun` | `boolean` | No | Validate without writing (default: `false`) |
 
